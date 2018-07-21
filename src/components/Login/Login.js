@@ -1,10 +1,18 @@
 import React, { Fragment, PureComponent } from 'react';
 import { Form, Field } from 'react-final-form';
+import { connect } from 'react-redux';
+import { Redirect } from 'react-router-dom';
 import styled from 'styled-components';
 import logo from './logo.svg';
 import usershape from './user-shape.svg';
 import lock from './padlock-unlock.svg';
-// import particles from '';
+import {
+  registrationRequest,
+  loginRequest,
+  getIsAuthorized,
+  getRegistationError,
+  getLoginError
+} from '../../ducks/auth';
 
 const DivContainer = styled.div`
   width: 440px;
@@ -92,6 +100,10 @@ const Button = styled.button`
   cursor: pointer;
 `;
 
+const ErrorP = styled.p`
+  color: grey;
+`;
+
 const DivLoginOrRegister = styled.div`
   width: 100%;
   height: 28px;
@@ -141,14 +153,15 @@ const formValidation = values => {
   return errors;
 };
 
-export default class Login extends PureComponent {
+export class Login extends PureComponent {
   state = {
     isLogin: true
   };
 
   handleSubmit = values => {
-    console.log('handleSubmit');
-    console.log(values);
+    const { registrationRequest, loginRequest } = this.props;
+
+    this.state.isLogin ? loginRequest(values) : registrationRequest(values);
   };
 
   handleLoginOrRegister = e => {
@@ -158,50 +171,72 @@ export default class Login extends PureComponent {
 
   render() {
     const { isLogin } = this.state;
+    const { isAuthorized, registationError, loginError  } = this.props;
+
+    if (isAuthorized) {
+      return <Redirect to="/profile" />;
+    }
 
     return (
-      <DivContainer>
-        <img className="logo" src={logo} alt="logo" />
-        <Form
-          initialValues={{ email: '', password: '' }}
-          onSubmit={this.handleSubmit}
-          validate={formValidation}
-          render={({ handleSubmit }) => (
-            <form onSubmit={handleSubmit}>
-              <InputDiv>
-                <EmailSpan />
-                <Field name="email" type="email" placeholder="email" component={Input} />
-              </InputDiv>
-              <InputDiv>
-                <PasswordSpan />
-                <Field name="password" type="text" placeholder="password" component={Input} />
-              </InputDiv>
-              <Button type="submit">
-                {isLogin && 'Войти'}
-                {!isLogin && 'Зарегистрироваться'}
-              </Button>
-            </form>
-          )}
-        />
-        <DivLoginOrRegister>
-          {isLogin && (
-            <p>
-              Впервые на сайте?
-              <a onClick={this.handleLoginOrRegister} href="">
-                Регистрация
-              </a>
-            </p>
-          )}
-          {!isLogin && (
-            <p>
-              Уже зарегистрированы?
-              <a onClick={this.handleLoginOrRegister} href="">
-                Войти
-              </a>
-            </p>
-          )}
-        </DivLoginOrRegister>
-      </DivContainer>
+      <Fragment>
+        <DivContainer>
+          <img className="logo" src={logo} alt="logo" />
+          <Form
+            initialValues={{ email: '', password: '' }}
+            onSubmit={this.handleSubmit}
+            validate={formValidation}
+            render={({ handleSubmit }) => (
+              <form onSubmit={handleSubmit}>
+                <InputDiv>
+                  <EmailSpan />
+                  <Field name="email" type="email" placeholder="email" component={Input} />
+                </InputDiv>
+                <InputDiv>
+                  <PasswordSpan />
+                  <Field name="password" type="text" placeholder="password" component={Input} />
+                </InputDiv>
+                {registationError && <ErrorP>{registationError}</ErrorP>}
+                {loginError && <ErrorP>{loginError}</ErrorP>}
+                <Button type="submit">
+                  {isLogin && 'Войти'}
+                  {!isLogin && 'Зарегистрироваться'}
+                </Button>
+              </form>
+            )}
+          />
+          <DivLoginOrRegister>
+            {isLogin && (
+              <p>
+                Впервые на сайте?
+                <a onClick={this.handleLoginOrRegister} href="">
+                  Регистрация
+                </a>
+              </p>
+            )}
+            {!isLogin && (
+              <p>
+                Уже зарегистрированы?
+                <a onClick={this.handleLoginOrRegister} href="">
+                  Войти
+                </a>
+              </p>
+            )}
+          </DivLoginOrRegister>
+        </DivContainer>
+      </Fragment>
     );
   }
-}
+};
+
+const mapStateToProps = state => ({
+  isAuthorized: getIsAuthorized(state),
+  registationError: getRegistationError(state),
+  loginError: getLoginError(state)
+});
+
+const mapDispatchToProps = { registrationRequest, loginRequest };
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Login);
