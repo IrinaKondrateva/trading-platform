@@ -14,6 +14,15 @@ import {
   getLoginError
 } from '../../ducks/auth';
 
+const DivLoginWrapper = styled.div`
+  background-color: #f5f5f6;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
 const DivContainer = styled.div`
   width: 440px;
   height: 100vh;
@@ -178,7 +187,7 @@ export class Login extends PureComponent {
     }
 
     return (
-      <Fragment>
+      <DivLoginWrapper>
         <DivContainer>
           <img className="logo" src={logo} alt="logo" />
           <Form
@@ -223,7 +232,7 @@ export class Login extends PureComponent {
             )}
           </DivLoginOrRegister>
         </DivContainer>
-      </Fragment>
+      </DivLoginWrapper>
     );
   }
 };
